@@ -2,13 +2,11 @@ package main
 
 import "fmt"
 
-func commandHelp(config *config) error {
-	fmt.Println()
-	fmt.Println("Welcome")
-	fmt.Println("Use one of the following commands")
+func commandHelp(*Config) error {
+	fmt.Println("")
+	fmt.Println("Here are the available commands:")
 	for _, cmd := range getCommands() {
-		fmt.Printf("Name: %v, Description %v\n", cmd.name, cmd.description)
+		fmt.Printf("\t-%v, Description: %v\n", cmd.name, cmd.desc)
 	}
-	fmt.Println()
 	return nil
 }

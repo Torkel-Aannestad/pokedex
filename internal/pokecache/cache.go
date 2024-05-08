@@ -5,19 +5,18 @@ import (
 	"time"
 )
 
-type cacheEntry struct {
+type CacheEntry struct {
 	createdAt time.Time
 	val       []byte
 }
-
 type Cache struct {
+	Cache map[string]CacheEntry
 	mu    sync.Mutex
-	items map[string]cacheEntry
 }
 
 func NewCache(interval time.Duration) Cache {
 	c := Cache{
-		items: map[string]cacheEntry{},
+		Cache: map[string]CacheEntry{},
 	}
 	go c.Purgeloop(interval)
 	return c
@@ -27,7 +26,7 @@ func (c *Cache) Add(key string, val []byte) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	c.items[key] = cacheEntry{
+	c.Cache[key] = CacheEntry{
 		createdAt: time.Now().UTC(),
 		val:       val,
 	}
@@ -37,25 +36,24 @@ func (c *Cache) Get(key string) ([]byte, bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	cEntry, exists := c.items[key]
-	if !exists {
+	entry, exits := c.Cache[key]
+	if exits {
+		return entry.val, true
+	} else {
 		return []byte{}, false
 	}
-	return cEntry.val, true
-}
-
-func (c *Cache) Purgeloop(internal time.Duration) {
-	ticker := time.NewTicker(internal)
-	for range ticker.C {
-		c.Purgeloop(internal)
-	}
-
 }
 func (c *Cache) Purge(interval time.Duration) {
-	timeAgo := time.Now().UTC().Add(-interval)
-	for k, v := range c.items {
-		if v.createdAt.Before(timeAgo) {
-			delete(c.items, k)
+	timeBeforeValidCache := time.Now().UTC().Add(-interval)
+	for k, v := range c.Cache {
+		if v.createdAt.Before(timeBeforeValidCache) {
+			delete(c.Cache, k)
 		}
+	}
+}
+func (c *Cache) Purgeloop(interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	for range ticker.C {
+		c.Purge(interval)
 	}
 }

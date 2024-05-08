@@ -1,14 +1,8 @@
 package main
 
-import (
-	"fmt"
-	"os"
-)
+import "os"
 
-func commandExit(config *config) error {
-	fmt.Println()
-	fmt.Println("Exiting Pokedex...")
-	fmt.Println()
+func commandExit(*Config) error {
 	os.Exit(0)
 	return nil
 }

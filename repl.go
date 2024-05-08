@@ -5,48 +5,53 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/torkelaannestad/pokedex/internal/pokeapi"
 )
 
 type cliCommand struct {
-	name        string
-	description string
-	callback    func(*config) error
+	name     string
+	desc     string
+	callback func(*Config) error
+}
+type Config struct {
+	NextUrl       *string
+	PreviousUrl   *string
+	PokeapiClient pokeapi.Client
 }
 
-type config struct {
-	pokeapiClient    pokeapi.Client
-	nextLocationsURL *string
-	prevLocationsURL *string
-}
-
-func startRepl(config *config) {
-	commands := getCommands()
+func startRepl() {
+	cfg := &Config{
+		PokeapiClient: pokeapi.NewClient(time.Minute, time.Second*15),
+	}
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
-		fmt.Print("Pokedex > ")
+		fmt.Print("pokedex >")
 		scanner.Scan()
+
 		words := cleanInput(scanner.Text())
 		if len(words) == 0 {
+			fmt.Println("Please provide a command")
 			continue
 		}
 		commandName := words[0]
+
+		commands := getCommands()
 		cmd, exists := commands[commandName]
 		if exists {
-			err := cmd.callback(config)
+			err := cmd.callback(cfg)
 			if err != nil {
-				fmt.Println(err)
+				fmt.Printf("%v\n", err)
 			}
 			continue
 		} else {
-			fmt.Println("Unknown command")
+			fmt.Println("Unknown commmand")
 			continue
 		}
 
 	}
-
 }
 
 func cleanInput(text string) []string {
@@ -56,27 +61,26 @@ func cleanInput(text string) []string {
 }
 
 func getCommands() map[string]cliCommand {
-
 	return map[string]cliCommand{
 		"help": {
-			name:        "help",
-			description: "Displays a help message",
-			callback:    commandHelp,
+			name:     "help",
+			desc:     "Available Commands",
+			callback: commandHelp,
 		},
 		"exit": {
-			name:        "exit",
-			description: "Exit the Pokedex",
-			callback:    commandExit,
+			name:     "exit",
+			desc:     "Exit Pokedex",
+			callback: commandExit,
 		},
 		"map": {
-			name:        "map",
-			description: "Displays the next 20 locations",
-			callback:    commandMap,
+			name:     "map",
+			desc:     "List of next locations",
+			callback: commandMap,
 		},
 		"mapb": {
-			name:        "mapb",
-			description: "Previous 20 locations",
-			callback:    commandMapb,
+			name:     "mapb",
+			desc:     "List of previous locations",
+			callback: commandMapb,
 		},
 	}
 }

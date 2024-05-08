@@ -5,40 +5,32 @@ import (
 	"fmt"
 )
 
-func commandMap(config *config) error {
-	fmt.Println()
-	fmt.Println("Locations:")
-
-	locationList, err := config.pokeapiClient.ListLocations(config.nextLocationsURL)
+func commandMap(cfg *Config) error {
+	locationList, err := cfg.PokeapiClient.LocationList(cfg.NextUrl)
 	if err != nil {
 		return err
 	}
-
-	config.nextLocationsURL = locationList.Next
-	config.prevLocationsURL = locationList.Previous
-
+	fmt.Println("Locations:")
 	for _, loc := range locationList.Results {
 		fmt.Printf("%v\n", loc.Name)
 	}
+	cfg.NextUrl = locationList.Next
+	cfg.PreviousUrl = locationList.Previous
 	return nil
 }
-func commandMapb(config *config) error {
-	if config.prevLocationsURL == nil {
-		return errors.New("your already on the first page")
+func commandMapb(cfg *Config) error {
+	if cfg.PreviousUrl == nil {
+		return errors.New("your are already on the first page")
 	}
-
-	fmt.Println()
-	fmt.Println("Locations:")
-	locationList, err := config.pokeapiClient.ListLocations(config.prevLocationsURL)
+	locationList, err := cfg.PokeapiClient.LocationList(cfg.PreviousUrl)
 	if err != nil {
 		return err
 	}
-
-	config.nextLocationsURL = locationList.Next
-	config.prevLocationsURL = locationList.Previous
-
+	fmt.Println("Locations:")
 	for _, loc := range locationList.Results {
 		fmt.Printf("%v\n", loc.Name)
 	}
+	cfg.NextUrl = locationList.Next
+	cfg.PreviousUrl = locationList.Previous
 	return nil
 }
